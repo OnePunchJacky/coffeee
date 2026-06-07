@@ -48,7 +48,7 @@ export const useStore = create<DataState>()((set, get) => ({
     set({ feedLoading: true });
     const { data, error } = await supabase
       .from('checkins')
-      .select('*, profiles(name, username), likes(user_id)')
+      .select('*, profiles!checkins_user_id_fkey(name, username), likes(user_id)')
       .order('created_at', { ascending: false })
       .limit(50);
 
@@ -98,7 +98,7 @@ export const useStore = create<DataState>()((set, get) => ({
         aroma_profile: data.aromaProfile,
         notes: data.notes,
       })
-      .select('*, profiles(name, username), likes(user_id)')
+      .select('*, profiles!checkins_user_id_fkey(name, username), likes(user_id)')
       .single();
 
     if (error) return { error: error.message };
