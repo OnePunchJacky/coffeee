@@ -2,6 +2,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Heart } from 'lucide-react';
 import { CheckIn, BREW_METHODS } from '../types';
 import { useStore, useUserName } from '../store/useStore';
+import { useAuth } from '../store/useAuth';
 import { RatingStars } from './RatingStars';
 
 const ORIGIN_FLAGS: Record<string, string> = {
@@ -40,7 +41,8 @@ interface Props {
 
 export function CheckInCard({ checkIn }: Props) {
   const toggleLike = useStore(s => s.toggleLike);
-  const currentUserId = useStore(s => s.currentUserId);
+  const { session } = useAuth();
+  const currentUserId = session?.user.id ?? '';
   const userName = useUserName(checkIn.userId);
   const hasLiked = checkIn.likes.includes(currentUserId);
   const brewMethod = BREW_METHODS.find(m => m.id === checkIn.brewMethod);
@@ -110,7 +112,7 @@ export function CheckInCard({ checkIn }: Props) {
       {/* Actions */}
       <div className="flex items-center gap-1 px-3 py-2.5 border-t border-cream-100">
         <button
-          onClick={() => toggleLike(checkIn.id)}
+          onClick={() => toggleLike(checkIn.id, currentUserId)}
           className={`flex items-center gap-1.5 px-2 py-1.5 rounded-xl text-sm font-medium transition-all active:scale-90 ${
             hasLiked ? 'text-red-500' : 'text-gray-400 hover:text-red-400'
           }`}

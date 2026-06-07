@@ -38,6 +38,8 @@ export function NewCheckIn() {
   const addCheckIn = useStore(s => s.addCheckIn);
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormData>(INIT);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   function set<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm(f => ({ ...f, [key]: value }));
@@ -59,9 +61,11 @@ export function NewCheckIn() {
     return true;
   }
 
-  function submit() {
+  async function submit() {
     if (!form.brewMethod) return;
-    addCheckIn({
+    setSubmitting(true);
+    setSubmitError(null);
+    const { error } = await addCheckIn({
       coffee: {
         name: form.coffeeName.trim(),
         roastery: form.roastery.trim(),
@@ -74,7 +78,12 @@ export function NewCheckIn() {
       aromaProfile: form.aromaProfile,
       notes: form.notes.trim(),
     });
-    navigate('/');
+    if (error) {
+      setSubmitError(error);
+      setSubmitting(false);
+    } else {
+      navigate('/');
+    }
   }
 
   const isLast = step === STEP_LABELS.length - 1;
@@ -125,13 +134,16 @@ export function NewCheckIn() {
       </div>
 
       {/* CTA */}
-      <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-cream-200 px-4 pb-safe pt-3">
+      <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-cream-200 px-4 pb-safe pt-3 space-y-2">
+        {submitError && (
+          <p className="text-red-500 text-sm text-center">{submitError}</p>
+        )}
         <button
           onClick={() => (isLast ? submit() : setStep(s => s + 1))}
-          disabled={!canNext()}
+          disabled={!canNext() || submitting}
           className="btn-primary w-full text-base"
         >
-          {isLast ? (
+          {submitting ? 'Saving…' : isLast ? (
             <>Log Coffee <Check size={18} /></>
           ) : (
             <>Next <ArrowRight size={18} /></>
